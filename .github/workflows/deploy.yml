@@ -33,6 +33,26 @@ jobs:
         
       - name: Build
         run: npm run build
+        env:
+          VITE_BASE_URL: '/website/'
+
+      - name: Verify build output
+        run: |
+          echo "Verifying build output..."
+          if [ -d "dist" ]; then
+            echo "✅ dist directory exists"
+            ls -la dist
+            if [ -f "dist/index.html" ]; then
+              echo "✅ index.html exists"
+              grep -i "base" dist/index.html || echo "Warning: No base tag found in index.html"
+            else
+              echo "❌ index.html is missing"
+              exit 1
+            fi
+          else
+            echo "❌ dist directory is missing"
+            exit 1
+          fi
         
       - name: Setup Pages
         uses: actions/configure-pages@v3
