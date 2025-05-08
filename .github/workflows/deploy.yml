@@ -35,16 +35,46 @@ jobs:
         run: npm run build
         env:
           VITE_BASE_URL: '/website/'
+          NODE_ENV: 'production'
 
       - name: Verify build output
         run: |
           echo "Verifying build output..."
           if [ -d "dist" ]; then
             echo "✅ dist directory exists"
+            echo "📋 Listing root dist directory content:"
             ls -la dist
+
+            echo "📋 Listing dist/assets directory content:"
+            if [ -d "dist/assets" ]; then
+              ls -la dist/assets
+              echo "✅ assets directory exists"
+            else
+              echo "❌ assets directory is missing"
+              exit 1
+            fi
+
             if [ -f "dist/index.html" ]; then
               echo "✅ index.html exists"
-              grep -i "base" dist/index.html || echo "Warning: No base tag found in index.html"
+              echo "📋 Checking for base URL in index.html:"
+              grep -i "website" dist/index.html || echo "⚠️ Warning: Base URL '/website/' not found in index.html"
+              
+              echo "📋 Checking asset references in index.html:"
+              ASSETS=$(grep -o 'href="[^"]*\|src="[^"]*' dist/index.html | cut -d'"' -f2)
+              
+              for ASSET in $ASSETS; do
+                if [[ $ASSET == /website/* ]]; then
+                  ASSET_PATH="${ASSET#/website}"
+                  if [ -f "dist$ASSET_PATH" ]; then
+                    echo "✅ Asset exists: $ASSET_PATH"
+                  else
+                    echo "❌ Missing asset: $ASSET_PATH"
+                    exit 1
+                  fi
+                elif [[ $ASSET == /* ]]; then
+                  echo "⚠️ Warning: Asset path might be incorrect: $ASSET (should start with /website/)"
+                fi
+              done
             else
               echo "❌ index.html is missing"
               exit 1
@@ -53,6 +83,9 @@ jobs:
             echo "❌ dist directory is missing"
             exit 1
           fi
+          
+          echo "🔍 Final directory structure for debugging:"
+          find dist -type f | sort
         
       - name: Setup Pages
         uses: actions/configure-pages@v4
