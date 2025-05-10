@@ -1,5 +1,6 @@
 import React from 'react';
 import { GraduationCap, Terminal } from 'lucide-react';
+import heroImage from '../assets/hero-image.jpg';
 
 export function Hero() {
   return (
@@ -33,7 +34,7 @@ export function Hero() {
           </div>
           <div className="flex-1">
             <img 
-              src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80" 
+              src={heroImage} 
               alt="Computer Science Setup"
               className="rounded-lg shadow-xl"
             />
